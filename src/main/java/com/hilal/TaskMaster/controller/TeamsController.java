@@ -33,12 +33,12 @@ public class TeamsController {
         return ResponseEntity.ok(teamResponseDto.get());
     }
 
-    @PutMapping("/{teamId}/adduser/{userEmail}")
-    public ResponseEntity<String> addUserToTeam(@PathVariable long teamId, @PathVariable String userEmail) {
+    @PutMapping("/{teamId}/adduser")
+    public ResponseEntity<String> addUserToTeam(@PathVariable long teamId, @RequestParam String userEmail) {
         Optional<Teams> team = teamService.getTeamById(teamId);
         Optional<Users> user = userService.getUserByEmail(userEmail);
-        if(team.isEmpty() || user.isEmpty()) return ResponseEntity.badRequest();
-        teamMembershipService.addUserToTeam(user,team, Role.USER);
+        if(team.isEmpty() || user.isEmpty()) return ResponseEntity.badRequest().build();
+        teamMembershipService.addUserToTeam(user.get(),team.get(), Role.USER);
         return ResponseEntity.ok("User Added to the team");
     }
 
