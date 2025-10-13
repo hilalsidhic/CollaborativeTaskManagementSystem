@@ -1,19 +1,45 @@
 package com.hilal.TaskMaster.controller;
 
+import com.hilal.TaskMaster.entity.Tasks;
+import com.hilal.TaskMaster.entity.Users;
+import com.hilal.TaskMaster.entity.dto.TaskRequestDto;
+import com.hilal.TaskMaster.entity.dto.TaskResponseDto;
+import com.hilal.TaskMaster.service.TaskService;
+import com.hilal.TaskMaster.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/tasks")
 public class TaskController {
 
+    private final TaskService taskService;
+    private final UserService userService;
+
     @PostMapping("/")
-    public String createTask() {
-        return "Task created";
+    public ResponseEntity<TaskResponseDto> createTask(Authentication authentication, @RequestBody TaskRequestDto taskRequestDto) {
+        String userEmail = authentication.getName();
+        Optional<Users> user = userService.getUserByEmail(userEmail);
+        if(user.isEmpty()) return ResponseEntity.notFound().build();
+        Optional<TaskResponseDto> task = taskService.createTask(taskRequestDto,user.get());
+        if (task.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(task.get());
     }
 
     @GetMapping("/{id}")
-    public String getTask(@PathVariable String id) {
-        return "Task details for ID: " + id;
+    public ResponseEntity<Tasks> getTask(@PathVariable long id) {
+        Optional<Tasks> task = taskService.getTaskById(id);
+        if (task.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(task.get());
     }
 
     @GetMapping("/")
@@ -31,9 +57,17 @@ public class TaskController {
         return "Task with ID: " + id + " deleted";
     }
 
-    @PutMapping("/{id}/assign/{userId}")
-    public String assignTask(@PathVariable String id, @PathVariable String userId) {
-        return "Task with ID: " + id + " assigned to user with ID: " + userId;
+    @PutMapping("/{taskId}/assign/{userId}")
+    public ResponseEntity<TaskResponseDto> assignTask(@PathVariable long id, @PathVariable long userId) {
+        Optional<Users> user = userService.getUserById(userId);
+        if(user.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        Optional<TaskResponseDto> updatedTask = taskService.assignTask(id, user.get());
+        if (updatedTask.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(updatedTask.get());
     }
 
     @PutMapping("/{id}/markascomplete")
