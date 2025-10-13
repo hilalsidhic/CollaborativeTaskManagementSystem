@@ -1,5 +1,6 @@
 package com.hilal.TaskMaster.controller;
 
+import com.hilal.TaskMaster.entity.Status;
 import com.hilal.TaskMaster.entity.Tasks;
 import com.hilal.TaskMaster.entity.Users;
 import com.hilal.TaskMaster.entity.dto.TaskRequestDto;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -33,51 +35,70 @@ public class TaskController {
         return ResponseEntity.ok(task.get());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Tasks> getTask(@PathVariable long id) {
-        Optional<Tasks> task = taskService.getTaskById(id);
+    @GetMapping("/{taskId}")
+    public ResponseEntity<Tasks> getTask(@PathVariable long taskId) {
+        Optional<Tasks> task = taskService.getTaskById(taskId);
         if (task.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(task.get());
     }
 
-    @GetMapping("/")
-    public String getAllTasks() {
-        return "List of all tasks";
-    }
-
-    @PutMapping("/{id}")
-    public String updateTask(@PathVariable String id) {
-        return "Task with ID: " + id + " updated";
-    }
-
-    @DeleteMapping("/{id}")
-    public String deleteTask(@PathVariable String id) {
-        return "Task with ID: " + id + " deleted";
-    }
-
-    @PutMapping("/{taskId}/assign/{userId}")
-    public ResponseEntity<TaskResponseDto> assignTask(@PathVariable long id, @PathVariable long userId) {
-        Optional<Users> user = userService.getUserById(userId);
-        if(user.isEmpty()) {
-            return ResponseEntity.badRequest().build();
+    @GetMapping("/all")
+    public ResponseEntity<List<TaskResponseDto>> getAllTaskForUser(Authentication authentication) {
+        String userEmail = authentication.getName();
+        Optional<Users> user = userService.getUserByEmail(userEmail);
+        if(user.isEmpty()) return ResponseEntity.notFound().build();
+        List<TaskResponseDto> tasks = taskService.getAllTasksForUser(user.get());
+        if (tasks.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
-        Optional<TaskResponseDto> updatedTask = taskService.assignTask(id, user.get());
+        return ResponseEntity.ok(tasks);
+    }
+
+    @PutMapping("/{taskId}")
+    public ResponseEntity<TaskResponseDto> updateTask(@PathVariable long taskId, @RequestBody TaskRequestDto taskDetails) {
+        Optional<TaskResponseDto> updatedTask = taskService.updateTask(taskId, taskDetails);
         if (updatedTask.isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
         return ResponseEntity.ok(updatedTask.get());
     }
 
-    @PutMapping("/{id}/markascomplete")
-    public String markTaskAsComplete(@PathVariable String id) {
-        return "Task with ID: " + id + " marked as complete";
+    @DeleteMapping("/{taskId}")
+    public String deleteTask(@PathVariable long taskId) {
+        return "Task with ID: " + taskId + " deleted";
+    }
+
+    @PutMapping("/{taskId}/assign/{userId}")
+    public ResponseEntity<TaskResponseDto> assignTask(@PathVariable long taskId, @PathVariable long userId) {
+        Optional<Users> user = userService.getUserById(userId);
+        if(user.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        Optional<TaskResponseDto> updatedTask = taskService.assignTask(taskId, user.get());
+        if (updatedTask.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(updatedTask.get());
+    }
+
+    @PutMapping("/{taskId}/markascomplete")
+    public ResponseEntity<TaskResponseDto> markTaskAsComplete(@PathVariable long taskId) {
+        Optional<TaskResponseDto> updatedTask = taskService.markTaskAsComplete(taskId);
+        if (updatedTask.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(updatedTask.get());
     }
 
     @GetMapping("/status/{status}")
-    public String getTasksByStatus(@PathVariable String status) {
-        return "List of tasks with status: " + status;
+    public ResponseEntity<List<TaskResponseDto>> getTasksByStatus(@PathVariable Status status) {
+        List<TaskResponseDto> tasks = taskService.getTasksByStatus(status);
+        if (tasks.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(tasks);
     }
 
     @PostMapping("/search/")
@@ -85,13 +106,22 @@ public class TaskController {
         return "Search results for criteria: " + criteria;
     }
 
-    @PostMapping("/{id}/comments/")
-    public String addComment(@PathVariable String id, @RequestBody String comment) {
+    @PostMapping("/{taskId}/comments/")
+    public String addComment(@PathVariable long id, @RequestBody String comment) {
         return "Comment added to task with ID: " + id;
     }
 
     @PostMapping("/{id}/attachments/")
     public String addAttachment(@PathVariable String id, @RequestBody String attachment) {
         return "Attachment added to task with ID: " + id;
+    }
+
+    @PutMapping("/{taskId}/addToTeam/{teamId}")
+    public ResponseEntity<TaskResponseDto> addTaskToTeam(@PathVariable long taskId, @PathVariable long teamId) {
+        Optional<TaskResponseDto> updatedTask = taskService.addTaskToTeam(taskId, teamId);
+        if (updatedTask.isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(updatedTask.get());
     }
 }
