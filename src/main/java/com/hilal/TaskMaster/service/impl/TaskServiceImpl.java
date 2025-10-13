@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -66,5 +67,20 @@ public class TaskServiceImpl implements TaskService {
                 .priority(updatedTask.getPriority())
                 .build();
         return Optional.of(responseDto);
+    }
+
+    @Override
+    public Optional<TaskResponseDto> updateTask(long taskId, TaskRequestDto taskRequestDto) {
+        return Optional.empty();
+    }
+
+    @Override
+    public List<TaskResponseDto> getTasksByStatus(String status) {
+        return List.of();
+    }
+
+    @Override
+    public Optional<TaskResponseDto> markTaskAsComplete(long taskId) {
+        return Optional.empty();
     }
 }
