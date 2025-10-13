@@ -14,4 +14,5 @@ public interface UserService {
     boolean updateLastLogin(Users user, LocalDateTime lastLogin);
     UserDto updateUserDetails(Users user, UserUpdateDto userUpdateDto);
     Optional<Users> getUserByEmail(String email);
+    Optional<Users> getUserById(long userId);
 }
