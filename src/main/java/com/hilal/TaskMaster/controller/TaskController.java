@@ -36,8 +36,8 @@ public class TaskController {
     }
 
     @GetMapping("/{taskId}")
-    public ResponseEntity<Tasks> getTask(@PathVariable long taskId) {
-        Optional<Tasks> task = taskService.getTaskById(taskId);
+    public ResponseEntity<TaskResponseDto> getTask(@PathVariable long taskId) {
+        Optional<TaskResponseDto> task = taskService.getTaskDTOById(taskId);
         if (task.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
