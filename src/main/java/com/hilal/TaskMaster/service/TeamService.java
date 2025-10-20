@@ -8,7 +8,7 @@ import com.hilal.TaskMaster.entity.dto.TeamResponseDto;
 import java.util.Optional;
 
 public interface TeamService {
-    Optional<TeamResponseDto> createTeam(TeamRequestDto teamRequestDto, Users user);
-    Optional<Teams> getTeamById(long teamId);
-    Optional<TeamResponseDto> updateTeam(long teamId, TeamRequestDto teamRequestDto);
+    TeamResponseDto createTeam(TeamRequestDto teamRequestDto, Users user);
+    Teams getTeamById(long teamId);
+    TeamResponseDto updateTeam(long teamId, TeamRequestDto teamRequestDto);
 }

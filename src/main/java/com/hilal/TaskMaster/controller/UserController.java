@@ -23,14 +23,13 @@ public class UserController {
     @GetMapping("/")
     public ResponseEntity<UserDto> getUserProfile(Authentication authentication) {
         String email = authentication.getName();
-        Optional<Users> user = userService.getUserByEmail(email);
-        if(user==null) return ResponseEntity.badRequest().build();
+        Users user = userService.getUserByEmail(email);
         UserDto userDto = UserDto.builder()
-                .userName(user.get().getUserName())
-                .email(user.get().getEmail())
-                .age(user.get().getAge())
-                .location(user.get().getLocation())
-                .lastLogin(user.get().getLastLogin())
+                .userName(user.getUserName())
+                .email(user.getEmail())
+                .age(user.getAge())
+                .location(user.getLocation())
+                .lastLogin(user.getLastLogin())
                 .build();
         return ResponseEntity.ok(userDto);
     }
@@ -38,8 +37,7 @@ public class UserController {
     @PutMapping("/")
     public ResponseEntity<UserDto> updateUserProfile(Authentication authentication, @RequestBody UserUpdateDto userUpdateDto) {
         String email = authentication.getName();
-        Optional<Users> user = userService.getUserByEmail(email);
-        if(user.isEmpty()) return ResponseEntity.notFound().build();
-        return ResponseEntity.ok(userService.updateUserDetails(user.get(),userUpdateDto));
+        Users user = userService.getUserByEmail(email);
+        return ResponseEntity.ok(userService.updateUserDetails(user,userUpdateDto));
     }
 }

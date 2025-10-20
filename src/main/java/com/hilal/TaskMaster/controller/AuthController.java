@@ -47,11 +47,8 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(userDTO.getEmail(),userDTO.getPassword())
         );
         UserDetails user = userDetailsService.loadUserByUsername(userDTO.getEmail());
-        if(user == null){
-            return ResponseEntity.internalServerError().build();
-        }
-        Optional<Users> userdetails = userService.getUserByEmail(userDTO.getEmail());
-        userService.updateLastLogin(userdetails.get(), LocalDateTime.now());
+        Users userdetails = userService.getUserByEmail(userDTO.getEmail());
+        userService.updateLastLogin(userdetails, LocalDateTime.now());
         String token = jwtService.generateToken(user);
         return ResponseEntity.ok(new UserLoginResponseDTO(token));
     }

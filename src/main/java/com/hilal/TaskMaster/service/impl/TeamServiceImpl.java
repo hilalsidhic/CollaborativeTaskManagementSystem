@@ -5,6 +5,8 @@ import com.hilal.TaskMaster.entity.Teams;
 import com.hilal.TaskMaster.entity.Users;
 import com.hilal.TaskMaster.entity.dto.TeamRequestDto;
 import com.hilal.TaskMaster.entity.dto.TeamResponseDto;
+import com.hilal.TaskMaster.exception.customExceptions.BadRequestException;
+import com.hilal.TaskMaster.exception.customExceptions.ResourceNotFoundException;
 import com.hilal.TaskMaster.repository.TeamRepository;
 import com.hilal.TaskMaster.service.TeamMembershipService;
 import com.hilal.TaskMaster.service.TeamService;
@@ -20,8 +22,22 @@ public class TeamServiceImpl implements TeamService {
     private final TeamRepository teamRepository;
     private final TeamMembershipService teamMembershipService;
 
+    private TeamResponseDto buildDtoFromTeam(Teams team) {
+        return TeamResponseDto.builder()
+                .teamId(team.getTeamId())
+                .teamName(team.getTeamName())
+                .description(team.getDescription())
+                .build();
+    }
+
     @Override
-    public Optional<TeamResponseDto> createTeam(TeamRequestDto teamRequestDto, Users user) {
+    public TeamResponseDto createTeam(TeamRequestDto teamRequestDto, Users user) {
+        if(teamRequestDto.getTeamName() == null || teamRequestDto.getTeamName().isEmpty()) {
+            throw new BadRequestException("Team name cannot be null or empty");
+        }
+        if(user == null) {
+            throw new BadRequestException("User cannot be null");
+        }
         Teams team = Teams.builder()
                 .teamName(teamRequestDto.getTeamName())
                 .description(teamRequestDto.getDescription())
@@ -33,25 +49,17 @@ public class TeamServiceImpl implements TeamService {
         Teams savedTeam = teamRepository.save(team);
         teamMembershipService.addUserToTeam(user,savedTeam, Role.ADMIN);
 
-        TeamResponseDto responseDto = TeamResponseDto.builder()
-                .teamId(savedTeam.getTeamId())
-                .teamName(savedTeam.getTeamName())
-                .description(savedTeam.getDescription())
-                .build();
-        return Optional.of(responseDto);
+        return buildDtoFromTeam(savedTeam);
     }
 
     @Override
-    public Optional<Teams> getTeamById(long teamId) {
-        Optional<Teams> team = teamRepository.findById(teamId);
-        if (team.isEmpty()) {
-            return Optional.empty();
-        }
-        return team;
+    public Teams getTeamById(long teamId) {
+        return teamRepository.findById(teamId)
+                .orElseThrow(()-> new ResourceNotFoundException("Team not found with id: " + teamId));
     }
 
     @Override
-    public Optional<TeamResponseDto> updateTeam(long teamId, TeamRequestDto teamRequestDto) {
-        return Optional.empty();
+    public TeamResponseDto updateTeam(long teamId, TeamRequestDto teamRequestDto) {
+        return null;
     }
 }

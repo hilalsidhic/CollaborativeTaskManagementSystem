@@ -10,9 +10,9 @@ import java.util.Optional;
 
 public interface UserService {
     boolean createUser(UserAuthenticationDTO userDTO);
-    Optional<Users> getUserByUserName(String username);
+    Users getUserByUserName(String username);
     boolean updateLastLogin(Users user, LocalDateTime lastLogin);
     UserDto updateUserDetails(Users user, UserUpdateDto userUpdateDto);
-    Optional<Users> getUserByEmail(String email);
-    Optional<Users> getUserById(long userId);
+    Users getUserByEmail(String email);
+    Users getUserById(long userId);
 }
