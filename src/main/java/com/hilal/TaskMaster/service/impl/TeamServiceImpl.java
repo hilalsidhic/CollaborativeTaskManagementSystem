@@ -54,6 +54,9 @@ public class TeamServiceImpl implements TeamService {
 
     @Override
     public Teams getTeamById(long teamId) {
+        if(teamId<=0){
+            throw new BadRequestException("Invalid team id");
+        }
         return teamRepository.findById(teamId)
                 .orElseThrow(()-> new ResourceNotFoundException("Team not found with id: " + teamId));
     }

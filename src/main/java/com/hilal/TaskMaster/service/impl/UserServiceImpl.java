@@ -50,7 +50,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public Users getUserByUserName(String username) {
         if(username == null || username.isEmpty()) {
-            return null;
+           throw new BadRequestException("Username cannot be null or empty");
         }
         return userRepository.findByUserName(username)
                 .orElseThrow(()-> new ResourceNotFoundException("User not found with username: " + username));
@@ -68,7 +68,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUserDetails(Users existingUser, UserUpdateDto userUpdateDto) {
-        if(existingUser == null) {
+        if(existingUser == null || userUpdateDto == null) {
             throw new BadRequestException("Existing user cannot be null");
         }
         if(userUpdateDto.getUserName() != null && !userUpdateDto.getUserName().isEmpty()) {
@@ -87,12 +87,18 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Users getUserByEmail(String email) {
+        if(email == null || email.isEmpty()) {
+            throw new BadRequestException("Email cannot be null or empty");
+        }
         return userRepository.findByEmail(email)
                 .orElseThrow(()-> new ResourceNotFoundException("User not found with email: " + email));
     }
 
     @Override
     public Users getUserById(long userId) {
+        if(userId <= 0) {
+            throw new BadRequestException("Invalid user ID");
+        }
         return userRepository.findById(userId)
                 .orElseThrow(()-> new ResourceNotFoundException("User not found with id: " + userId));
     }

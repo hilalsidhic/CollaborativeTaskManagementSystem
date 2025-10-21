@@ -6,6 +6,7 @@ import com.hilal.TaskMaster.entity.Teams;
 import com.hilal.TaskMaster.entity.Users;
 import com.hilal.TaskMaster.entity.dto.TaskRequestDto;
 import com.hilal.TaskMaster.entity.dto.TaskResponseDto;
+import com.hilal.TaskMaster.exception.customExceptions.BadRequestException;
 import com.hilal.TaskMaster.exception.customExceptions.ResourceNotFoundException;
 import com.hilal.TaskMaster.repository.TaskRepository;
 import com.hilal.TaskMaster.service.TaskService;
@@ -41,6 +42,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskResponseDto createTask(TaskRequestDto taskRequestDto, Users user) {
+        if(taskRequestDto == null || user == null){
+            throw new BadRequestException("Task and user cant be null");
+        }
         Tasks task = Tasks.builder()
                 .title(taskRequestDto.getTitle())
                 .description(taskRequestDto.getDescription())
@@ -57,6 +61,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public Tasks getTaskById(long taskId) {
+        if(taskId <= 0){
+            throw new BadRequestException("TaskId should be valid");
+        }
         return taskRepository.findById(taskId)
                 .orElseThrow(()-> new ResourceNotFoundException("Task not found with id: " + taskId));
     }
@@ -68,6 +75,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskResponseDto assignTask(long taskId, Users user) {
+        if(user == null){
+            throw new BadRequestException("User cannot be null");
+        }
         Tasks task = getTaskById(taskId);
         task.setAssignedTo(user);
         task.setUpdatedAt(LocalDateTime.now());
@@ -77,6 +87,9 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskResponseDto updateTask(long taskId, TaskRequestDto taskRequestDto) {
+        if(taskRequestDto == null){
+            throw new BadRequestException("TaskRequestDto cannot be null");
+        }
         Tasks task = getTaskById(taskId);
         if (taskRequestDto.getTitle() != null) {
             task.setTitle(taskRequestDto.getTitle());

@@ -2,8 +2,18 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.6'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
 }
-
+test {
+	useJUnitPlatform()
+}
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
 group = 'com.hilal'
 version = '0.0.1-SNAPSHOT'
 description = 'TaskMaster: A Collaborative Task Tracking System'
