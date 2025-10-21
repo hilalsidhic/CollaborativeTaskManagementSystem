@@ -26,43 +26,29 @@ public class TaskController {
     @PostMapping("/")
     public ResponseEntity<TaskResponseDto> createTask(Authentication authentication, @RequestBody TaskRequestDto taskRequestDto) {
         String userEmail = authentication.getName();
-        Optional<Users> user = userService.getUserByEmail(userEmail);
-        if(user.isEmpty()) return ResponseEntity.notFound().build();
-        Optional<TaskResponseDto> task = taskService.createTask(taskRequestDto,user.get());
-        if (task.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(task.get());
+        Users user = userService.getUserByEmail(userEmail);
+        TaskResponseDto task = taskService.createTask(taskRequestDto,user);
+        return ResponseEntity.ok(task);
     }
 
     @GetMapping("/{taskId}")
     public ResponseEntity<TaskResponseDto> getTask(@PathVariable long taskId) {
-        Optional<TaskResponseDto> task = taskService.getTaskDTOById(taskId);
-        if (task.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(task.get());
+        TaskResponseDto task = taskService.getTaskDTOById(taskId);
+        return ResponseEntity.ok(task);
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<TaskResponseDto>> getAllTaskForUser(Authentication authentication) {
         String userEmail = authentication.getName();
-        Optional<Users> user = userService.getUserByEmail(userEmail);
-        if(user.isEmpty()) return ResponseEntity.notFound().build();
-        List<TaskResponseDto> tasks = taskService.getAllTasksForUser(user.get());
-        if (tasks.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
+        Users user = userService.getUserByEmail(userEmail);
+        List<TaskResponseDto> tasks = taskService.getAllTasksForUser(user);
         return ResponseEntity.ok(tasks);
     }
 
     @PutMapping("/{taskId}")
     public ResponseEntity<TaskResponseDto> updateTask(@PathVariable long taskId, @RequestBody TaskRequestDto taskDetails) {
-        Optional<TaskResponseDto> updatedTask = taskService.updateTask(taskId, taskDetails);
-        if (updatedTask.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(updatedTask.get());
+        TaskResponseDto updatedTask = taskService.updateTask(taskId, taskDetails);
+        return ResponseEntity.ok(updatedTask);
     }
 
     @DeleteMapping("/{taskId}")
@@ -72,24 +58,15 @@ public class TaskController {
 
     @PutMapping("/{taskId}/assign/{userId}")
     public ResponseEntity<TaskResponseDto> assignTask(@PathVariable long taskId, @PathVariable long userId) {
-        Optional<Users> user = userService.getUserById(userId);
-        if(user.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        Optional<TaskResponseDto> updatedTask = taskService.assignTask(taskId, user.get());
-        if (updatedTask.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(updatedTask.get());
+        Users user = userService.getUserById(userId);
+        TaskResponseDto updatedTask = taskService.assignTask(taskId, user);
+        return ResponseEntity.ok(updatedTask);
     }
 
     @PutMapping("/{taskId}/markascomplete")
     public ResponseEntity<TaskResponseDto> markTaskAsComplete(@PathVariable long taskId) {
-        Optional<TaskResponseDto> updatedTask = taskService.markTaskAsComplete(taskId);
-        if (updatedTask.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(updatedTask.get());
+        TaskResponseDto updatedTask = taskService.markTaskAsComplete(taskId);
+        return ResponseEntity.ok(updatedTask);
     }
 
     @GetMapping("/status/{status}")
@@ -118,10 +95,7 @@ public class TaskController {
 
     @PutMapping("/{taskId}/addToTeam/{teamId}")
     public ResponseEntity<TaskResponseDto> addTaskToTeam(@PathVariable long taskId, @PathVariable long teamId) {
-        Optional<TaskResponseDto> updatedTask = taskService.addTaskToTeam(taskId, teamId);
-        if (updatedTask.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(updatedTask.get());
+        TaskResponseDto updatedTask = taskService.addTaskToTeam(taskId, teamId);
+        return ResponseEntity.ok(updatedTask);
     }
 }

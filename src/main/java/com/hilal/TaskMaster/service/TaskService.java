@@ -10,22 +10,22 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TaskService {
-    Optional<TaskResponseDto> createTask(TaskRequestDto taskRequestDto, Users user);
-    Optional<Tasks> getTaskById(long taskId);
-    Optional<TaskResponseDto> getTaskDTOById(long taskId);
-    Optional<TaskResponseDto> updateTask(long taskId, TaskRequestDto taskRequestDto);
+    TaskResponseDto createTask(TaskRequestDto taskRequestDto, Users user);
+    Tasks getTaskById(long taskId);
+    TaskResponseDto getTaskDTOById(long taskId);
+    TaskResponseDto updateTask(long taskId, TaskRequestDto taskRequestDto);
     String deleteTask(long taskId);
 
-    Optional<TaskResponseDto> assignTask(long taskId, Users user);
-    Optional<TaskResponseDto> unassignTask(long taskId);
-    Optional<TaskResponseDto> markTaskAsComplete(long taskId);
+    TaskResponseDto assignTask(long taskId, Users user);
+    TaskResponseDto unassignTask(long taskId);
+    TaskResponseDto markTaskAsComplete(long taskId);
 
     List<TaskResponseDto> getTasksByStatus(Status status);
     List<TaskResponseDto> getAllTasksForUser(Users user);
 
     List<TaskResponseDto> getAllTasksForTeam(long teamId);
     List<TaskResponseDto> getAllOverdueTasks();
-    Optional<TaskResponseDto> addTaskToTeam(long taskId, long teamId);
-    Optional<TaskResponseDto> removeTaskFromTeam(long taskId);
+    TaskResponseDto addTaskToTeam(long taskId, long teamId);
+    TaskResponseDto removeTaskFromTeam(long taskId);
 
 }

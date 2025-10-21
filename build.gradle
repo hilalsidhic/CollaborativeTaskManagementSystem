@@ -2,8 +2,18 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.6'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
 }
-
+test {
+	useJUnitPlatform()
+}
+jacocoTestReport {
+	dependsOn test
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
 group = 'com.hilal'
 version = '0.0.1-SNAPSHOT'
 description = 'TaskMaster: A Collaborative Task Tracking System'
@@ -28,7 +38,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // or 'io.jsonwebtoken:jjwt-gson' for gson

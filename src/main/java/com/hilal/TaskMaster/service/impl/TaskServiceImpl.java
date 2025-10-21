@@ -6,6 +6,8 @@ import com.hilal.TaskMaster.entity.Teams;
 import com.hilal.TaskMaster.entity.Users;
 import com.hilal.TaskMaster.entity.dto.TaskRequestDto;
 import com.hilal.TaskMaster.entity.dto.TaskResponseDto;
+import com.hilal.TaskMaster.exception.customExceptions.BadRequestException;
+import com.hilal.TaskMaster.exception.customExceptions.ResourceNotFoundException;
 import com.hilal.TaskMaster.repository.TaskRepository;
 import com.hilal.TaskMaster.service.TaskService;
 import com.hilal.TaskMaster.service.TeamService;
@@ -22,8 +24,27 @@ public class TaskServiceImpl implements TaskService {
     private final TaskRepository taskRepository;
     private final TeamService teamService;
 
+    private TaskResponseDto buildDtoFromTask(Tasks task) {
+        return TaskResponseDto.builder()
+                .taskId(task.getTaskId())
+                .title(task.getTitle())
+                .description(task.getDescription())
+                .dueDate(task.getDueDate())
+                .status(task.getStatus())
+                .priority(task.getPriority())
+                .createdAt(task.getCreatedAt())
+                .updatedAt(task.getUpdatedAt())
+                .assignedUser((task.getAssignedTo() != null) ? task.getAssignedTo().getUserName() : null)
+                .teamName((task.getTeam() != null) ? task.getTeam().getTeamName() : null)
+                .createdBy(task.getCreatedBy().getUserName())
+                .build();
+    }
+
     @Override
-    public Optional<TaskResponseDto> createTask(TaskRequestDto taskRequestDto, Users user) {
+    public TaskResponseDto createTask(TaskRequestDto taskRequestDto, Users user) {
+        if(taskRequestDto == null || user == null){
+            throw new BadRequestException("Task and user cant be null");
+        }
         Tasks task = Tasks.builder()
                 .title(taskRequestDto.getTitle())
                 .description(taskRequestDto.getDescription())
@@ -35,83 +56,41 @@ public class TaskServiceImpl implements TaskService {
                 .priority(taskRequestDto.getPriority())
                 .build();
         Tasks savedTask = taskRepository.save(task);
-        TaskResponseDto responseDto = TaskResponseDto.builder()
-                .taskId(savedTask.getTaskId())
-                .title(savedTask.getTitle())
-                .description(savedTask.getDescription())
-                .dueDate(savedTask.getDueDate())
-                .status(savedTask.getStatus())
-                .priority(savedTask.getPriority())
-                .createdAt(savedTask.getCreatedAt())
-                .updatedAt(savedTask.getUpdatedAt())
-                .assignedUser((savedTask.getAssignedTo() != null) ? savedTask.getAssignedTo().getUserName() : null)
-                .teamName((savedTask.getTeam() != null) ? savedTask.getTeam().getTeamName() : null)
-                .createdBy(savedTask.getCreatedBy().getUserName())
-                .build();
-        return Optional.of(responseDto);
+        return buildDtoFromTask(savedTask);
     }
 
     @Override
-    public Optional<Tasks> getTaskById(long taskId) {
-        Optional<Tasks> task = taskRepository.findById(taskId);
-        return task;
+    public Tasks getTaskById(long taskId) {
+        if(taskId <= 0){
+            throw new BadRequestException("TaskId should be valid");
+        }
+        return taskRepository.findById(taskId)
+                .orElseThrow(()-> new ResourceNotFoundException("Task not found with id: " + taskId));
     }
     @Override
-    public Optional<TaskResponseDto> getTaskDTOById(long taskId) {
-        Optional<Tasks> task = getTaskById(taskId);
-        if (task.isEmpty()) {
-            return Optional.empty();
-        }
-        Tasks t = task.get();
-        TaskResponseDto responseDto = TaskResponseDto.builder()
-                .taskId(t.getTaskId())
-                .title(t.getTitle())
-                .description(t.getDescription())
-                .dueDate(t.getDueDate())
-                .status(t.getStatus())
-                .priority(t.getPriority())
-                .createdAt(t.getCreatedAt())
-                .updatedAt(t.getUpdatedAt())
-                .assignedUser((t.getAssignedTo() != null) ? t.getAssignedTo().getUserName() : null)
-                .teamName((t.getTeam() != null) ? t.getTeam().getTeamName() : null)
-                .createdBy(t.getCreatedBy().getUserName())
-                .build();
-        return Optional.of(responseDto);
+    public TaskResponseDto getTaskDTOById(long taskId) {
+        Tasks task = getTaskById(taskId);
+        return buildDtoFromTask(task);
     }
 
     @Override
-    public Optional<TaskResponseDto> assignTask(long taskId, Users user) {
-        Optional<Tasks> taskOpt = getTaskById(taskId);
-        if (taskOpt.isEmpty()) {
-            return Optional.empty();
+    public TaskResponseDto assignTask(long taskId, Users user) {
+        if(user == null){
+            throw new BadRequestException("User cannot be null");
         }
-        Tasks task = taskOpt.get();
+        Tasks task = getTaskById(taskId);
         task.setAssignedTo(user);
         task.setUpdatedAt(LocalDateTime.now());
         Tasks updatedTask = taskRepository.save(task);
-        TaskResponseDto responseDto = TaskResponseDto.builder()
-                .taskId(updatedTask.getTaskId())
-                .title(updatedTask.getTitle())
-                .description(updatedTask.getDescription())
-                .dueDate(updatedTask.getDueDate())
-                .status(updatedTask.getStatus())
-                .priority(updatedTask.getPriority())
-                .createdAt(updatedTask.getCreatedAt())
-                .updatedAt(updatedTask.getUpdatedAt())
-                .assignedUser((updatedTask.getAssignedTo() != null) ? updatedTask.getAssignedTo().getUserName() : null)
-                .teamName((updatedTask.getTeam() != null) ? updatedTask.getTeam().getTeamName() : null)
-                .createdBy(updatedTask.getCreatedBy().getUserName())
-                .build();
-        return Optional.of(responseDto);
+        return buildDtoFromTask(updatedTask);
     }
 
     @Override
-    public Optional<TaskResponseDto> updateTask(long taskId, TaskRequestDto taskRequestDto) {
-        Optional<Tasks> taskOpt = getTaskById(taskId);
-        if (taskOpt.isEmpty()) {
-            return Optional.empty();
+    public TaskResponseDto updateTask(long taskId, TaskRequestDto taskRequestDto) {
+        if(taskRequestDto == null){
+            throw new BadRequestException("TaskRequestDto cannot be null");
         }
-        Tasks task = taskOpt.get();
+        Tasks task = getTaskById(taskId);
         if (taskRequestDto.getTitle() != null) {
             task.setTitle(taskRequestDto.getTitle());
         }
@@ -129,228 +108,85 @@ public class TaskServiceImpl implements TaskService {
         }
         task.setUpdatedAt(LocalDateTime.now());
         Tasks updatedTask = taskRepository.save(task);
-        TaskResponseDto responseDto = TaskResponseDto.builder()
-                .taskId(updatedTask.getTaskId())
-                .title(updatedTask.getTitle())
-                .description(updatedTask.getDescription())
-                .dueDate(updatedTask.getDueDate())
-                .status(updatedTask.getStatus())
-                .priority(updatedTask.getPriority())
-                .createdAt(updatedTask.getCreatedAt())
-                .updatedAt(updatedTask.getUpdatedAt())
-                .assignedUser((updatedTask.getAssignedTo() != null) ? updatedTask.getAssignedTo().getUserName() : null)
-                .teamName((updatedTask.getTeam() != null) ? updatedTask.getTeam().getTeamName() : null)
-                .createdBy(updatedTask.getCreatedBy().getUserName())
-                .build();
-        return Optional.of(responseDto);
+        return buildDtoFromTask(updatedTask);
     }
 
     @Override
-    public Optional<TaskResponseDto> addTaskToTeam(long taskId, long teamId) {
-        Optional<Teams> teamOpt = teamService.getTeamById(teamId);
-        Optional<Tasks> taskOpt = getTaskById(taskId);
-        if (teamOpt.isEmpty() || taskOpt.isEmpty()) {
-            return Optional.empty();
-        }
-        Tasks task = taskOpt.get();
-        task.setTeam(teamOpt.get());
+    public TaskResponseDto addTaskToTeam(long taskId, long teamId) {
+        Teams team = teamService.getTeamById(teamId);
+        Tasks task = getTaskById(taskId);
+        task.setTeam(team);
         task.setUpdatedAt(LocalDateTime.now());
         Tasks updatedTask = taskRepository.save(task);
-        TaskResponseDto responseDto = TaskResponseDto.builder()
-                .taskId(updatedTask.getTaskId())
-                .title(updatedTask.getTitle())
-                .description(updatedTask.getDescription())
-                .dueDate(updatedTask.getDueDate())
-                .status(updatedTask.getStatus())
-                .priority(updatedTask.getPriority())
-                .createdAt(updatedTask.getCreatedAt())
-                .updatedAt(updatedTask.getUpdatedAt())
-                .assignedUser((updatedTask.getAssignedTo() != null) ? updatedTask.getAssignedTo().getUserName() : null)
-                .teamName((updatedTask.getTeam() != null) ? updatedTask.getTeam().getTeamName() : null)
-                .createdBy(updatedTask.getCreatedBy().getUserName())
-                .build();
-        return Optional.of(responseDto);
+        return buildDtoFromTask(updatedTask);
     }
 
     @Override
     public List<TaskResponseDto> getTasksByStatus(Status status) {
         List<Tasks> tasks = taskRepository.findByStatus(status);
-        if (tasks.isEmpty()) {
-            return List.of();
-        }
-        List<TaskResponseDto> responseDtos = tasks.stream()
-                .map(task -> TaskResponseDto.builder()
-                .taskId(task.getTaskId())
-                .title(task.getTitle())
-                .description(task.getDescription())
-                .dueDate(task.getDueDate())
-                .status(task.getStatus())
-                .priority(task.getPriority())
-                .createdAt(task.getCreatedAt())
-                .updatedAt(task.getUpdatedAt())
-                .assignedUser((task.getAssignedTo() != null) ? task.getAssignedTo().getUserName() : null)
-                .teamName((task.getTeam() != null) ? task.getTeam().getTeamName() : null)
-                .createdBy(task.getCreatedBy().getUserName())
-                .build()).toList();
-        return responseDtos;
+        return tasks.stream()
+                .map(this::buildDtoFromTask)
+                .toList();
     }
 
     @Override
     public String deleteTask(long taskId) {
-        Optional<Tasks> taskOpt = getTaskById(taskId);
-        if (taskOpt.isEmpty()) {
-            return "Task with ID: " + taskId + " not found";
-        }
+        Tasks task = getTaskById(taskId);
         taskRepository.deleteById(taskId);
         return "Task with ID: " + taskId + " deleted";
     }
 
     @Override
     public List<TaskResponseDto> getAllTasksForUser(Users user) {
-        List<Tasks> tasks = taskRepository.findByAssignedToUserIdOrCreatedByUserId(user.getUserId(),user.getUserId());
-        if (tasks.isEmpty()) {
-            return List.of();
-        }
-        List<TaskResponseDto> responseDtos = tasks.stream()
-                .map(task -> TaskResponseDto.builder()
-                        .taskId(task.getTaskId())
-                        .title(task.getTitle())
-                        .description(task.getDescription())
-                        .dueDate(task.getDueDate())
-                        .status(task.getStatus())
-                        .priority(task.getPriority())
-                        .createdAt(task.getCreatedAt())
-                        .updatedAt(task.getUpdatedAt())
-                        .assignedUser((task.getAssignedTo() != null) ? task.getAssignedTo().getUserName() : null)
-                        .teamName((task.getTeam() != null) ? task.getTeam().getTeamName() : null)
-                        .createdBy(task.getCreatedBy().getUserName())
-                        .build()).toList();
-        return responseDtos;
+        List<Tasks> tasks = taskRepository.findByAssignedToUserIdOrCreatedByUserId(user.getUserId(), user.getUserId());
+        return tasks.stream()
+                .map(this::buildDtoFromTask)
+                .toList();
     }
 
     @Override
-    public Optional<TaskResponseDto> markTaskAsComplete(long taskId) {
-        Optional<Tasks> taskOpt = getTaskById(taskId);
-        if (taskOpt.isEmpty()) {
-            return Optional.empty();
-        }
-        Tasks task = taskOpt.get();
-        task.setStatus(Status.COMPLETED);
-        task.setUpdatedAt(LocalDateTime.now());
-        task.setCompletedAt(LocalDateTime.now());
-        Tasks updatedTask = taskRepository.save(task);
+    public TaskResponseDto markTaskAsComplete(long taskId) {
+            Tasks task = getTaskById(taskId);
+            task.setStatus(Status.COMPLETED);
+            task.setUpdatedAt(LocalDateTime.now());
+            task.setCompletedAt(LocalDateTime.now());
+            Tasks updatedTask = taskRepository.save(task);
 
-        TaskResponseDto responseDto = TaskResponseDto.builder()
-                .taskId(updatedTask.getTaskId())
-                .title(updatedTask.getTitle())
-                .description(updatedTask.getDescription())
-                .dueDate(updatedTask.getDueDate())
-                .status(updatedTask.getStatus())
-                .priority(updatedTask.getPriority())
-                .createdAt(updatedTask.getCreatedAt())
-                .updatedAt(updatedTask.getUpdatedAt())
-                .assignedUser((updatedTask.getAssignedTo() != null) ? updatedTask.getAssignedTo().getUserName() : null)
-                .teamName((updatedTask.getTeam() != null) ? updatedTask.getTeam().getTeamName() : null)
-                .createdBy(updatedTask.getCreatedBy().getUserName())
-                .build();
-        return Optional.of(responseDto);
+            return buildDtoFromTask(updatedTask);
     }
 
     @Override
-    public Optional<TaskResponseDto> unassignTask(long taskId) {
-        Optional<Tasks> taskOpt = getTaskById(taskId);
-        if (taskOpt.isEmpty()) {
-            return Optional.empty();
-        }
-        Tasks task = taskOpt.get();
+    public TaskResponseDto unassignTask(long taskId) {
+        Tasks task = getTaskById(taskId);
         task.setAssignedTo(null);
         task.setUpdatedAt(LocalDateTime.now());
         Tasks updatedTask = taskRepository.save(task);
-        TaskResponseDto responseDto = TaskResponseDto.builder()
-                .taskId(updatedTask.getTaskId())
-                .title(updatedTask.getTitle())
-                .description(updatedTask.getDescription())
-                .dueDate(updatedTask.getDueDate())
-                .status(updatedTask.getStatus())
-                .priority(updatedTask.getPriority())
-                .createdAt(updatedTask.getCreatedAt())
-                .updatedAt(updatedTask.getUpdatedAt())
-                .assignedUser((updatedTask.getAssignedTo() != null) ? updatedTask.getAssignedTo().getUserName() : null)
-                .teamName((updatedTask.getTeam() != null) ? updatedTask.getTeam().getTeamName() : null)
-                .createdBy(updatedTask.getCreatedBy().getUserName())
-                .build();
-        return Optional.of(responseDto);
+        return buildDtoFromTask(updatedTask);
     }
 
     @Override
-    public Optional<TaskResponseDto> removeTaskFromTeam(long taskId) {
-        Optional<Tasks> taskOpt = getTaskById(taskId);
-        if (taskOpt.isEmpty()) {
-            return Optional.empty();
-        }
-        Tasks task = taskOpt.get();
+    public TaskResponseDto removeTaskFromTeam(long taskId) {
+        Tasks task = getTaskById(taskId);
         task.setTeam(null);
         task.setUpdatedAt(LocalDateTime.now());
         Tasks updatedTask = taskRepository.save(task);
-        TaskResponseDto responseDto = TaskResponseDto.builder()
-                .taskId(updatedTask.getTaskId())
-                .title(updatedTask.getTitle())
-                .description(updatedTask.getDescription())
-                .dueDate(updatedTask.getDueDate())
-                .status(updatedTask.getStatus())
-                .priority(updatedTask.getPriority())
-                .createdAt(updatedTask.getCreatedAt())
-                .updatedAt(updatedTask.getUpdatedAt())
-                .assignedUser((updatedTask.getAssignedTo() != null) ? updatedTask.getAssignedTo().getUserName() : null)
-                .teamName((updatedTask.getTeam() != null) ? updatedTask.getTeam().getTeamName() : null)
-                .createdBy(updatedTask.getCreatedBy().getUserName())
-                .build();
-        return Optional.of(responseDto);
+        return buildDtoFromTask(updatedTask);
     }
 
     @Override
     public List<TaskResponseDto> getAllTasksForTeam(long teamId) {
         List<Tasks> tasks = taskRepository.findByTeamTeamId(teamId);
-        if (tasks.isEmpty()) {
-            return List.of();
-        }
-        List<TaskResponseDto> responseDtos = tasks.stream()
-                .map(task -> TaskResponseDto.builder()
-                        .taskId(task.getTaskId())
-                        .title(task.getTitle())
-                        .description(task.getDescription())
-                        .dueDate(task.getDueDate())
-                        .status(task.getStatus())
-                        .priority(task.getPriority())
-                        .createdAt(task.getCreatedAt())
-                        .updatedAt(task.getUpdatedAt())
-                        .assignedUser((task.getAssignedTo() != null) ? task.getAssignedTo().getUserName() : null)
-                        .teamName((task.getTeam() != null) ? task.getTeam().getTeamName() : null)
-                        .createdBy(task.getCreatedBy().getUserName())
-                        .build()).toList();
-        return responseDtos;
+        return tasks.stream()
+                .map(this::buildDtoFromTask)
+                .toList();
     }
 
     @Override
     public List<TaskResponseDto> getAllOverdueTasks() {
         List<Tasks> tasks = taskRepository.findByDueDateBeforeAndStatusNot(LocalDateTime.now(), Status.COMPLETED);
-        if (tasks.isEmpty()) {
-            return List.of();
-        }
-        List<TaskResponseDto> responseDtos = tasks.stream()
-                .map(task -> TaskResponseDto.builder()
-                        .taskId(task.getTaskId())
-                        .title(task.getTitle())
-                        .description(task.getDescription())
-                        .dueDate(task.getDueDate())
-                        .status(task.getStatus())
-                        .priority(task.getPriority())
-                        .createdAt(task.getCreatedAt())
-                        .updatedAt(task.getUpdatedAt())
-                        .assignedUser((task.getAssignedTo() != null) ? task.getAssignedTo().getUserName() : null)
-                        .teamName((task.getTeam() != null) ? task.getTeam().getTeamName() : null)
-                        .createdBy(task.getCreatedBy().getUserName())
-                        .build()).toList();
-        return responseDtos;
+        return tasks.stream()
+                .map(this::buildDtoFromTask)
+                .toList();
     }
+
 }
