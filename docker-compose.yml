@@ -16,12 +16,8 @@ services:
     image: taskmaster
     depends_on:
       - mysql
-    environment:
-      MYSQL_HOST: mysql
-      DATASOURCE_URL: jdbc:mysql://mysql:3306/taskmaster_db
-      DATASOURCE_USERNAME: root
-      DATASOURCE_PASSWORD: root
-      JWT_SECRET_KEY: 5A3bRyYQzEAaAGaVYM0HrTxsSjo6eZVROBfsUIZ2/CmKworXHqBM2FjwpB1pMtUA6R/5PTxBik4glShys87UJw==
+    env_file:
+      - .env
     ports:
       - "8080:8080"
     networks:
