@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: taskmaster_db
+    ports:
+      - "3306:3306"
+    networks:
+      - tasknet
+
+  app:
+    image: taskmaster
+    depends_on:
+      - mysql
+    environment:
+      MYSQL_HOST: mysql
+      DATASOURCE_URL: jdbc:mysql://mysql:3306/taskmaster_db
+      DATASOURCE_USERNAME: root
+      DATASOURCE_PASSWORD: root
+      JWT_SECRET_KEY: 5A3bRyYQzEAaAGaVYM0HrTxsSjo6eZVROBfsUIZ2/CmKworXHqBM2FjwpB1pMtUA6R/5PTxBik4glShys87UJw==
+    ports:
+      - "8080:8080"
+    networks:
+      - tasknet
+
+networks:
+  tasknet:
+    driver: bridge
