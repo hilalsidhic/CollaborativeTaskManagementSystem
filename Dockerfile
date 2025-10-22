@@ -1,16 +1,12 @@
-FROM openjdk:21-jdk-slim
-
+# Stage 1: Build
+FROM gradle:jdk21 AS builder
 WORKDIR /app
+COPY . .
+RUN gradle clean bootJar --no-daemon
 
-# Install MySQL client (needed for wait-for-mysql.sh)
-RUN apt-get update && \
-    apt-get install -y default-mysql-client && \
-    rm -rf /var/lib/apt/lists/*
-
-COPY build/libs/TaskMaster-0.0.1-SNAPSHOT.jar app.jar
-COPY wait-for-mysql.sh wait-for-mysql.sh
-RUN chmod +x wait-for-mysql.sh
+# Stage 2: Runtime
+FROM openjdk:21-jdk-slim
+WORKDIR /app
+COPY --from=builder /app/build/libs/TaskMaster-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
-
-# Run the wait script instead of the jar directly
-ENTRYPOINT ["sh", "wait-for-mysql.sh"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
