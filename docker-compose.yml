@@ -1,28 +1,9 @@
 version: '3.8'
 
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql-db
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: taskmaster_db
-    ports:
-      - "3306:3306"
-    networks:
-      - tasknet
-
   app:
     image: taskmaster
-    depends_on:
-      - mysql
     env_file:
       - .env
     ports:
       - "8080:8080"
-    networks:
-      - tasknet
-
-networks:
-  tasknet:
-    driver: bridge
