@@ -2,6 +2,8 @@
 
 Welcome to the official backend repository for **TaskMaster**, a powerful task tracking and management application designed for seamless team collaboration. This document provides all the necessary information to understand, run, and contribute to the project.
 
+Check whether the application is up - https://stats.uptimerobot.com/45azxgmHZS
+
 ---
 
 ## 🧭 Overview
