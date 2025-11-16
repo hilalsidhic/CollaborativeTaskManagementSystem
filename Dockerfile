@@ -5,7 +5,7 @@ COPY . .
 RUN gradle clean bootJar --no-daemon
 
 # Stage 2: Runtime
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk-alpine
 WORKDIR /app
 COPY --from=builder /app/build/libs/TaskMaster-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
