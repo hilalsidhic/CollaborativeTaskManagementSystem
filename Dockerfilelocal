@@ -1,0 +1,28 @@
+FROM openjdk:21-jdk-slim
+
+# Install necessary tools
+RUN apt-get update && \
+    apt-get install -y default-mysql-client wget unzip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Gradle
+RUN wget https://services.gradle.org/distributions/gradle-8.4.1-bin.zip -P /tmp && \
+    unzip -d /opt/gradle /tmp/gradle-8.4.1-bin.zip && \
+    ln -s /opt/gradle/gradle-8.4.1/bin/gradle /usr/bin/gradle
+
+WORKDIR /app
+
+# Copy everything
+COPY . .
+
+# Build the jar
+RUN ./gradlew clean bootJar
+
+# Set the jar location
+COPY build/libs/TaskMaster-0.0.1-SNAPSHOT.jar app.jar
+COPY wait-for-mysql.sh wait-for-mysql.sh
+RUN chmod +x wait-for-mysql.sh
+
+EXPOSE 8080
+
+ENTRYPOINT ["sh", "wait-for-mysql.sh"]

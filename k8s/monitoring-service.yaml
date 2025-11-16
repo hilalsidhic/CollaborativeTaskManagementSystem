@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: taskmaster
+  namespace: monitoring
+  labels:
+    release: monitoring-stack
+spec:
+  selector:
+    matchLabels:
+      app: taskmaster
+  namespaceSelector:
+    matchNames:
+      - default
+  endpoints:
+    - port: management
+      path: /actuator/prometheus
+      interval: 15s
+      honorLabels: true
