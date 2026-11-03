@@ -6,4 +6,6 @@ import com.hilal.TaskMaster.entity.Users;
 
 public interface TeamMembershipService {
     void addUserToTeam(Users user, Teams team, Role role);
+
+    void addUserToTeam(Users requestingUser, Users user, Teams team, Role role);
 }
