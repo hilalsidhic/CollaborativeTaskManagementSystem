@@ -11,10 +11,8 @@ import com.hilal.TaskMaster.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,10 +32,13 @@ public class TeamsController {
     }
 
     @PutMapping("/{teamId}/adduser")
-    public ResponseEntity<String> addUserToTeam(@PathVariable long teamId, @RequestParam String userEmail) {
+    public ResponseEntity<String> addUserToTeam(Authentication authentication,
+                                                 @PathVariable long teamId,
+                                                 @RequestParam String userEmail) {
+        Users requestingUser = userService.getUserByEmail(authentication.getName());
         Teams team = teamService.getTeamById(teamId);
         Users user = userService.getUserByEmail(userEmail);
-        teamMembershipService.addUserToTeam(user,team, Role.USER);
+        teamMembershipService.addUserToTeam(requestingUser, user, team, Role.USER);
         return ResponseEntity.ok("User Added to the team");
     }
 

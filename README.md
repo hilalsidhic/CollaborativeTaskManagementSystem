@@ -96,6 +96,14 @@ The app runs at [http://localhost:8080](http://localhost:8080).
 | GET | `/` | Get logged-in user's profile | Protected |
 | PUT | `/` | Update user's profile | Protected |
 
+### **Teams** (`/teams`)
+| Method | Endpoint | Description | Access |
+|--------|-----------|-------------|---------|
+| POST | `/` | Create a team (creator becomes ADMIN) | Authenticated |
+| PUT | `/{teamId}/adduser?userEmail=...` | Add a user as a USER member | Team ADMIN or MANAGER |
+
+Only team members with the `ADMIN` or `MANAGER` role may add members. Other roles and users who are not members receive HTTP `403 Forbidden`.
+
 ### **Tasks** (`/tasks`) *(To Be Implemented)*
 | Method | Endpoint | Description | Access |
 |--------|-----------|-------------|---------|

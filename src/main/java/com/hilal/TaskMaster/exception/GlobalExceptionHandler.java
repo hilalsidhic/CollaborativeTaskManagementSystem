@@ -39,6 +39,15 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<Map<String,Object>> handleForbiddenException(ForbiddenException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", ex.getMessage());
+        response.put("status", HttpStatus.FORBIDDEN);
+        response.put("timestamp", System.currentTimeMillis());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
+
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Map<String,Object>> handleUnauthorizedException(UnauthorizedException ex) {
         Map<String, Object> response = new HashMap<>();
